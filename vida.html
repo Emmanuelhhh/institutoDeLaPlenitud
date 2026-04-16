@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Rueda de Vida · Diario de Áreas</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ----- VARIABLES (claro/oscuro) ----- */
+  :root {
+    --purple-50: #EEEDFE; --purple-100: #CECBF6; --purple-600: #534AB7; --purple-800: #3C3489;
+    --teal-50: #E1F5EE; --teal-100: #9FE1CB; --teal-600: #0F6E56; --teal-800: #085041;
+    --blue-50: #E6F1FB; --blue-100: #B5D4F4; --blue-600: #185FA5; --blue-800: #0C447C;
+    --green-50: #EAF3DE; --green-100: #C0DD97; --green-600: #3B6D11; --green-800: #27500A;
+    --amber-50: #FAEEDA; --amber-100: #FAC775; --amber-600: #854F0B; --amber-800: #633806;
+    --coral-50: #FAECE7; --coral-100: #F5C4B3; --coral-600: #993C1D; --coral-800: #712B13;
+    --border: #d4d2ca;
+    --border-dashed: #c8c6be;
+    --bg: #ffffff;
+    --text: #1a1a18;
+    --text-secondary: #6b6b66;
+    --text-tertiary: #a8a8a0;
+    --center-bg: #ffffff;
+    --card-shadow: 0 2px 6px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.03);
+    --popup-bg: rgba(30,30,28,0.92);
+    --popup-text: #fef9e8;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --purple-50: #26215C; --purple-100: #3C3489; --purple-600: #AFA9EC; --purple-800: #CECBF6;
+      --teal-50: #04342C; --teal-100: #085041; --teal-600: #5DCAA5; --teal-800: #9FE1CB;
+      --blue-50: #042C53; --blue-100: #0C447C; --blue-600: #85B7EB; --blue-800: #B5D4F4;
+      --green-50: #173404; --green-100: #27500A; --green-600: #97C459; --green-800: #C0DD97;
+      --amber-50: #412402; --amber-100: #633806; --amber-600: #EF9F27; --amber-800: #FAC775;
+      --coral-50: #4A1B0C; --coral-100: #712B13; --coral-600: #F0997B; --coral-800: #F5C4B3;
+      --border: #3a3a36;
+      --border-dashed: #333330;
+      --bg: #1a1a18;
+      --text: #e8e6de;
+      --text-secondary: #a8a8a0;
+      --text-tertiary: #6b6b66;
+      --center-bg: #242422;
+      --popup-bg: rgba(0,0,0,0.85);
+      --popup-text: #f5f2e6;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: system-ui, -apple-system, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+    padding: 24px 20px 40px;
+  }
+
+  h1 {
+    font-size: 16px;
+    font-weight: 550;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  /* contenedor SVG + overlay centrado */
+  .svg-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.02));
+  }
+
+  /* Tarjetas interactivas: cursor puntero y fuente más grande */
+  .aspect-card {
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.1s;
+  }
+  .aspect-card:hover {
+    transform: scale(1.01);
+  }
+  .aspect-card:hover rect {
+    filter: brightness(0.98);
+    stroke-width: 1.2;
+  }
+
+  /* textos más grandes y legibles dentro del SVG */
+  .th {
+    font-size: 17px !important;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .ts {
+    font-size: 14px !important;
+    font-weight: 500;
+    opacity: 0.92;
+  }
+
+  /* centro interactivo */
+  #center-wrap {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 12px;
+    pointer-events: auto;
+    background: transparent;
+    border-radius: 60px;
+  }
+
+  #center-label {
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+    font-weight: 450;
+  }
+
+  #center-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    width: 190px;
+    resize: none;
+    font-family: inherit;
+    line-height: 1.45;
+    backdrop-filter: blur(2px);
+    border-radius: 24px;
+    padding: 6px 8px;
+  }
+  #center-input::placeholder {
+    color: var(--text-tertiary);
+    font-style: italic;
+    font-size: 13px;
+    font-weight: 400;
+  }
+
+  /* ----- MODAL / POPUP DE DESCRIPCIÓN (estilo moderno) ----- */
+  .description-popup {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.96);
+    background: var(--popup-bg);
+    backdrop-filter: blur(12px);
+    border-radius: 36px;
+    padding: 14px 28px;
+    min-width: 260px;
+    max-width: 86vw;
+    width: auto;
+    text-align: center;
+    box-shadow: 0 20px 35px -12px rgba(0,0,0,0.3), 0 1px 2px rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,240,0.2);
+    transition: opacity 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.2s ease;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1000;
+    font-family: inherit;
+  }
+  .description-popup.show {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+    pointer-events: none;
+  }
+  .popup-title {
+    font-weight: 700;
+    font-size: 1.3rem;
+    letter-spacing: -0.2px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #fff3e0;
+  }
+  .popup-desc {
+    font-size: 1rem;
+    line-height: 1.45;
+    color: var(--popup-text);
+    font-weight: 470;
+    word-break: break-word;
+  }
+  .popup-icon {
+    font-size: 1.4rem;
+  }
+  /* botón para cerrar (pequeño, solo si se quiere cerrar antes) pero se oculta automático */
+  .close-tip {
+    position: absolute;
+    top: -10px;
+    right: 6px;
+    background: none;
+    border: none;
+    color: rgba(255,255,210,0.7);
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* mejor responsividad */
+  @media (max-width: 580px) {
+    .th { font-size: 15px !important; }
+    .ts { font-size: 12px !important; }
+    .description-popup { padding: 12px 22px; }
+    .popup-title { font-size: 1.2rem; }
+    .popup-desc { font-size: 0.9rem; }
+  }
+  @media (max-width: 480px) {
+    .th { font-size: 13.5px !important; }
+    .ts { font-size: 10.5px !important; }
+    #center-input { width: 160px; font-size: 13px; }
+  }
+  /* pie de página sutil */
+  .info-note {
+    margin-top: 24px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-align: center;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+<h1>✦ RUEDA DE VIDA ✦</h1>
+<div class="svg-container" id="svgContainer">
+  <svg viewBox="0 0 680 680" xmlns="http://www.w3.org/2000/svg" id="mainSvg">
+    <defs>
+      <style>
+        text { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+        .th { font-size: 17px; font-weight: 600; }
+        .ts { font-size: 14px; font-weight: 500; }
+      </style>
+    </defs>
+
+    <!-- Círculo guía exterior -->
+    <circle cx="340" cy="340" r="252" fill="none" stroke="var(--border-dashed)" stroke-width="0.6" stroke-dasharray="6 5"/>
+
+    <!-- Líneas de conexión -->
+    <line x1="340" y1="215" x2="340" y2="255" stroke="var(--border-dashed)" stroke-width="0.9" stroke-dasharray="4 3"/>
+    <line x1="390" y1="228" x2="462" y2="283" stroke="var(--border-dashed)" stroke-width="0.9" stroke-dasharray="4 3"/>
+    <line x1="450" y1="340" x2="532" y2="340" stroke="var(--border-dashed)" stroke-width="0.9" stroke-dasharray="4 3"/>
+    <line x1="390" y1="452" x2="462" y2="450" stroke="var(--border-dashed)" stroke-width="0.9" stroke-dasharray="4 3"/>
+    <line x1="290" y1="452" x2="218" y2="450" stroke="var(--border-dashed)" stroke-width="0.9" stroke-dasharray="4 3"/>
+    <line x1="230" y1="340" x2="150" y2="340" stroke="var(--border-dashed)" stroke-width="0.9" stroke-dasharray="4 3"/>
+    <line x1="290" y1="228" x2="218" y2="283" stroke="var(--border-dashed)" stroke-width="0.9" stroke-dasharray="4 3"/>
+
+    <!-- TARJETA 1 - ESPIRITUAL (arriba) -->
+    <g class="aspect-card" data-area="espiritual" data-title="✦ Espiritual" data-desc="Sentido de conexión, propósito interno y prácticas que nutren el alma. Fe, meditación o aquello que trasciende lo cotidiano.">
+      <rect x="270" y="42" width="140" height="60" rx="12" fill="var(--purple-50)" stroke="var(--purple-100)" stroke-width="0.8"/>
+      <text class="th" x="340" y="65" text-anchor="middle" dominant-baseline="central" fill="var(--purple-800)">✦ Espiritual</text>
+      <text class="ts" x="340" y="87" text-anchor="middle" dominant-baseline="central" fill="var(--purple-600)">Fe y propósito</text>
+    </g>
+
+    <!-- TARJETA 2 - SABIDURÍA (arriba derecha) -->
+    <g class="aspect-card" data-area="sabiduria" data-title="◈ Sabiduría" data-desc="Aprendizaje continuo, curiosidad, lectura, formación y reflexión. El cultivo de la mente y conocimiento significativo.">
+      <rect x="462" y="108" width="156" height="60" rx="12" fill="var(--teal-50)" stroke="var(--teal-100)" stroke-width="0.8"/>
+      <text class="th" x="540" y="131" text-anchor="middle" dominant-baseline="central" fill="var(--teal-800)">◈ Sabiduría</text>
+      <text class="ts" x="540" y="153" text-anchor="middle" dominant-baseline="central" fill="var(--teal-600)">Aprendizaje continuo</text>
+    </g>
+
+    <!-- TARJETA 3 - PROFESIONAL (derecha) -->
+    <g class="aspect-card" data-area="profesional" data-title="⚙ Profesional" data-desc="Desempeño laboral, desarrollo de carrera, habilidades técnicas, vocación y realización en el trabajo.">
+      <rect x="534" y="312" width="120" height="60" rx="12" fill="var(--blue-50)" stroke="var(--blue-100)" stroke-width="0.8"/>
+      <text class="th" x="594" y="334" text-anchor="middle" dominant-baseline="central" fill="var(--blue-800)">⚙ Profesional</text>
+      <text class="ts" x="594" y="356" text-anchor="middle" dominant-baseline="central" fill="var(--blue-600)">oficio y misión</text>
+    </g>
+
+    <!-- TARJETA 4 - SALUD (abajo derecha) -->
+    <g class="aspect-card" data-area="salud" data-title="♡ Salud" data-desc="Energía física, bienestar emocional, descanso, alimentación consciente y equilibrio corporal.">
+      <rect x="462" y="516" width="156" height="60" rx="12" fill="var(--green-50)" stroke="var(--green-100)" stroke-width="0.8"/>
+      <text class="th" x="540" y="538" text-anchor="middle" dominant-baseline="central" fill="var(--green-800)">♡ Salud</text>
+      <text class="ts" x="540" y="560" text-anchor="middle" dominant-baseline="central" fill="var(--green-600)">Física y mental</text>
+    </g>
+
+    <!-- TARJETA 5 - FINANCIERO (abajo izquierda) -->
+    <g class="aspect-card" data-area="financiero" data-title="$ Financiero" data-desc="Ingresos, ahorros, administración, libertad económica y relación saludable con el dinero.">
+      <rect x="62" y="516" width="156" height="60" rx="12" fill="var(--amber-50)" stroke="var(--amber-100)" stroke-width="0.8"/>
+      <text class="th" x="140" y="538" text-anchor="middle" dominant-baseline="central" fill="var(--amber-800)">$ Financiero</text>
+      <text class="ts" x="140" y="560" text-anchor="middle" dominant-baseline="central" fill="var(--amber-600)">Abundancia y orden</text>
+    </g>
+
+    <!-- TARJETA 6 - SOCIAL (izquierda) -->
+    <g class="aspect-card" data-area="social" data-title="❋ Social" data-desc="Amistades, familia, comunidad, pertenencia y calidad de relaciones interpersonales.">
+      <rect x="26" y="312" width="120" height="60" rx="12" fill="var(--coral-50)" stroke="var(--coral-100)" stroke-width="0.8"/>
+      <text class="th" x="86" y="334" text-anchor="middle" dominant-baseline="central" fill="var(--coral-800)">❋ Social</text>
+      <text class="ts" x="86" y="356" text-anchor="middle" dominant-baseline="central" fill="var(--coral-600)">Vínculos y comunidad</text>
+    </g>
+
+    <!-- TARJETA 7 - AMBIENTAL (arriba izquierda) -->
+    <g class="aspect-card" data-area="ambiental" data-title="⬡ Ambiental" data-desc="Entorno donde vives, orden, naturaleza, sostenibilidad y armonía con el planeta.">
+      <rect x="62" y="108" width="156" height="60" rx="12" fill="var(--green-50)" stroke="var(--green-100)" stroke-width="0.8"/>
+      <text class="th" x="140" y="131" text-anchor="middle" dominant-baseline="central" fill="var(--green-800)">⬡ Ambiental</text>
+      <text class="ts" x="140" y="153" text-anchor="middle" dominant-baseline="central" fill="var(--green-600)">Entorno y naturaleza</text>
+    </g>
+
+    <!-- Centro: círculos -->
+    <circle cx="340" cy="340" r="112" fill="var(--center-bg)" stroke="var(--border)" stroke-width="1.2"/>
+    <circle cx="340" cy="340" r="108" fill="none" stroke="var(--border-dashed)" stroke-width="0.8" stroke-dasharray="3 4"/>
+  </svg>
+
+  <!-- Campo central superpuesto (mejorado) -->
+  <div id="center-wrap" style="left:50%; top:50%; width:210px; height:200px; position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <div id="center-label">🌟 MI CENTRO ES...</div>
+    <textarea id="center-input" rows="4" placeholder="Escribe aquí lo que da sentido a todo...&#10;ej: paz, creatividad, familia"></textarea>
+  </div>
+</div>
+<div class="info-note">✨ Haz clic en cualquier tarjeta para conocer su significado ✨</div>
+
+<!-- popup flotante para descripciones -->
+<div id="descPopup" class="description-popup">
+  <div class="popup-title"><span id="popupIcon"></span><span id="popupTitle"></span></div>
+  <div class="popup-desc" id="popupDesc"></div>
+</div>
+
+<script>
+  (function() {
+    // ----- OBTENER TARJETAS (grupos con clase .aspect-card) -----
+    const cards = document.querySelectorAll('.aspect-card');
+    const popup = document.getElementById('descPopup');
+    const popupTitleSpan = document.getElementById('popupTitle');
+    const popupDescSpan = document.getElementById('popupDesc');
+    const popupIconSpan = document.getElementById('popupIcon');
+    
+    // Mapa extra de iconos por si se desea más personalización, pero ya usamos el título con símbolo
+    // también mapeamos descripciones secundarias (ya vienen en data-desc)
+    let activeTimeout = null;
+
+    // Función para mostrar el popup con la información de la tarjeta
+    function showDescription(title, description, iconHint = '') {
+      // Limpiar timeout anterior para evitar que se cierre prematuramente
+      if (activeTimeout) {
+        clearTimeout(activeTimeout);
+        activeTimeout = null;
+      }
+      
+      // Establecer título y descripción
+      popupTitleSpan.innerText = title;
+      popupDescSpan.innerText = description;
+      
+      // Asignar un ícono simple basado en el título o mantener el símbolo original
+      let iconChar = '📌';
+      if (title.includes('Espiritual')) iconChar = '✨';
+      else if (title.includes('Sabiduría')) iconChar = '📚';
+      else if (title.includes('Profesional')) iconChar = '⚙️';
+      else if (title.includes('Salud')) iconChar = '💚';
+      else if (title.includes('Financiero')) iconChar = '💰';
+      else if (title.includes('Social')) iconChar = '🤝';
+      else if (title.includes('Ambiental')) iconChar = '🌿';
+      else iconChar = '🌀';
+      
+      popupIconSpan.innerText = iconChar;
+      
+      // Mostrar popup con animación
+      popup.classList.add('show');
+      
+      // Auto-ocultar después de 4 segundos, pero si el usuario hace click en otra tarjeta se reinicia
+      activeTimeout = setTimeout(() => {
+        popup.classList.remove('show');
+        activeTimeout = null;
+      }, 4200);
+    }
+    
+    // Función para ocultar inmediatamente (opcional al hacer click fuera? pero dejamos que se oculte sola)
+    // Mejor: al hacer click en otra tarjeta reiniciamos el temporizador, y se muestra la nueva.
+    
+    // Asignar evento click a cada tarjeta
+    cards.forEach(card => {
+      // Extraer información de los atributos data personalizados
+      const area = card.getAttribute('data-area');
+      let title = card.getAttribute('data-title');
+      let description = card.getAttribute('data-desc');
+      
+      // Si por alguna razón no tiene data-title, lo extraemos de los textos internos (fallback)
+      if (!title) {
+        const thText = card.querySelector('.th');
+        if (thText) title = thText.textContent.trim();
+        else title = "Área vital";
+      }
+      
+      // Descripciones completas y enriquecedoras por si el data-desc no existiera, lo ponemos manual
+      const defaultDescriptions = {
+        espiritual: "Conexión con el sentido profundo, prácticas espirituales, meditación, fe y propósito existencial. Nutre tu mundo interior.",
+        sabiduria: "Búsqueda de conocimiento, aprender cada día, leer, estudiar, mantener mente abierta y curiosidad viva.",
+        profesional: "Realización en el trabajo, desarrollo de carrera, habilidades, propósito profesional y aporte a la sociedad.",
+        salud: "Cuidado del cuerpo, mente y emociones. Ejercicio, descanso, alimentación y equilibrio psicológico.",
+        financiero: "Gestión del dinero, ahorro, inversión, prosperidad, estabilidad y paz financiera.",
+        social: "Relaciones significativas, amistad, comunidad, colaboración, pertenencia y apoyo mutuo.",
+        ambiental: "Armonía con el entorno, hogar ordenado, conexión con la naturaleza, sostenibilidad y respeto por el planeta."
+      };
+      
+      if (!description || description.trim() === "") {
+        if (area && defaultDescriptions[area]) description = defaultDescriptions[area];
+        else description = "Reflexiona sobre esta dimensión de tu vida y cómo influye en tu bienestar global.";
+      }
+      
+      // Guardar en el propio elemento para acceder rápido (evita leer atributos cada vez)
+      card._title = title;
+      card._description = description;
+      
+      // Evento click: mostrar popup
+      card.addEventListener('click', (event) => {
+        event.stopPropagation();  // Evita que se propague a elementos padres (centro no se ve afectado)
+        showDescription(card._title, card._description, '');
+      });
+      
+      // También mejorar accesibilidad: añadir role y tabindex opcional
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.style.cursor = 'pointer';
+      // añadir tecla enter/espacio para accesibilidad
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          showDescription(card._title, card._description, '');
+        }
+      });
+    });
+    
+    // Si el usuario hace click en cualquier parte del fondo (excepto tarjetas y centro) no pasa nada,
+    // pero podemos mantener que el popup desaparezca si se hace clic fuera? opcional pero no necesario.
+    // para experiencia agradable: si el popup está visible y alguien hace clic en otra tarjeta, se actualiza y reinicia temporizador.
+    // Eso ya funciona porque cada click llama a showDescription y limpia el timeout anterior.
+    
+    // adicional: si se hace clic en el área central, NO debe interferir con popups.
+    const centerDiv = document.getElementById('center-wrap');
+    if (centerDiv) {
+      centerDiv.addEventListener('click', (e) => {
+        e.stopPropagation();  // evita que se cierren cosas, preserva el texto del centro.
+      });
+    }
+    
+    // También agregar pequeña mejora: si se presiona la tecla Escape mientras el popup está activo, se puede cerrar
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && popup.classList.contains('show')) {
+        popup.classList.remove('show');
+        if (activeTimeout) {
+          clearTimeout(activeTimeout);
+          activeTimeout = null;
+        }
+      }
+    });
+    
+    // Inicialización opcional: si se quiere guardar el texto del centro en localStorage (bonus)
+    const centerInput = document.getElementById('center-input');
+    if (centerInput && localStorage.getItem('rueda_centro_text')) {
+      centerInput.value = localStorage.getItem('rueda_centro_text');
+    }
+    if (centerInput) {
+      centerInput.addEventListener('input', () => {
+        localStorage.setItem('rueda_centro_text', centerInput.value);
+      });
+    }
+    
+    // Tooltip adicional: para que las tarjetas tengan cursor pointer y efecto sutil ya se ve.
+    console.log("Rueda de vida mejorada: letras grandes + descripciones al hacer clic");
+  })();
+</script>
+</body>
+</html>
